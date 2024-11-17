@@ -5,3 +5,4 @@ view.css
 !src/view.css
 *.js.map
 *.css.map
+*.vsix
