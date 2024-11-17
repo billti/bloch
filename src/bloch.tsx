@@ -1,14 +1,21 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 /* TODO:
 
+- Rearrange the UI to follow the design
+- See if the 'sphere' can take the entire window, with others overlayed (and honor resizing)
+  - https://threejs.org/manual/#en/responsive
+- Wire up the settings to the renderer (rotation speed, trail length, colors, etc.)
+- Save/restore settings
+- Use CSS to honor the light/dark theme for the settings
+- Only show the equation once it starts
+- Add ability to collapse/open the equation list
 - Draw the equator (z plane line)
-- VS Code doesn't render property in dark theme
 - Show the equations from state vector to bloch angles
 - Show the matrix to be applied when hovering over a gate
 - Add the trailing dots with a slider for history and fade out speed
 - Add a slider for rotation speed
 - Add a slider to drag back and forth to replay the gates
+- Scroll to and highlight the current equation as history moves forward and back
+- Show a pop-up over the manual entry box when focused to show the resulting matrix
 
 To convert basis state coeffeicients a & b into a point on the Bloch sphere:
  - Calculate the angle theta = 2 * acos(magnitute(a))
@@ -16,6 +23,7 @@ To convert basis state coeffeicients a & b into a point on the Bloch sphere:
 */
 
 import { useEffect, useRef, useState } from "preact/hooks";
+import katex from "katex";
 
 import {
   BoxGeometry,
@@ -38,10 +46,9 @@ import {
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js";
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
-
-import { GUI } from "three/examples/jsm/libs/lil-gui.module.min.js"
-
 import * as fontJson from "three/examples/fonts/helvetiker_regular.typeface.json";
+
+import { GUI } from "three/examples/jsm/libs/lil-gui.module.min.js";
 
 import {
   AppliedGate,
@@ -55,15 +62,6 @@ import {
   TGate,
   Hadamard,
 } from "../src/cplx.js";
-
-import markdownIt from "markdown-it";
-import katex from "@vscode/markdown-it-katex";
-
-const md = markdownIt("commonmark");
-md.use(katex, {
-  enableMathBlockInHtml: true,
-  enableMathInlineInHtml: true,
-});
 
 import rzOps from "./rz-array.json";
 
@@ -173,7 +171,7 @@ function createText(scene: Scene, done: () => void) {
 const rotationTimeMs = 100;
 
 class BlochRenderer {
-  // gui: GUI;
+  gui: GUI;
   scene: Scene;
   camera: PerspectiveCamera;
   renderer: WebGLRenderer;
@@ -186,24 +184,30 @@ class BlochRenderer {
   rotations: Rotations;
 
   constructor(canvas: HTMLCanvasElement) {
-    // Sample GUI controls
-    // this.gui = new GUI();
-    // const guiControls = {
-    //   gates: "",
-    //   rz: 0.0,
-    //   onH() {},
-    //   onX() {},
-    //   onY() {},
-    //   onZ() {},
-    // };
+    // Sample GUI controls. See https://lil-gui.georgealways.com/
+    this.gui = new GUI();
+    const guiControls = {
+      rotationSpeed: 500,
+      trailLength: 1.0,
+      transparency: 0.2,
+      sphereColor: "#404080",
+      trailColor: "#663399",
+      showAxes: true,
+      showEvolutionAsMatrices: false,
+      theme: "Default"
+    };
 
-    // this.gui.add(guiControls, "gates").onFinishChange((value) => {});
-    // this.gui.add(guiControls, "rz", 0.0, 6.28, 0.01).onFinishChange((value) => {});
-    // this.gui.add(guiControls, "onH").name("H");
-    // this.gui.add(guiControls, "onX").name("X");
-    // this.gui.add(guiControls, "onY").name("Y");
-    // this.gui.add(guiControls, "onZ").name("Z");
+    this.gui.title("UI settings");
 
+    this.gui.add(guiControls, "rotationSpeed", 0, 1000).name("Rotation speed");
+    this.gui.add(guiControls, "trailLength", 0, 1.0).name("Trail length");
+    this.gui.add(guiControls, "transparency", 0, 1.0).name("Transparency");
+    this.gui.add(guiControls, "showAxes").name("Show axes");
+    this.gui.add(guiControls, "showEvolutionAsMatrices").name("Evolve matrices");
+    this.gui.addColor(guiControls, "sphereColor").name("Sphere color");
+    this.gui.addColor(guiControls, "trailColor").name("Trail color");
+    this.gui.add(guiControls, "theme", ["Default", "Light", "Dark"]).name("Theme");
+    this.gui.close();
 
     this.rotations = new Rotations(64);
 
@@ -336,8 +340,6 @@ class BlochRenderer {
       rotationAxis.add(finBoxMesh);
     });
 
-    // TODO: Only to be added when rotating
-    // scene.add(rotationAxis);
     this.rotationAxis = rotationAxis;
 
     // See https://threejs.org/manual/#en/rendering-on-demand
@@ -490,11 +492,10 @@ export function BlochSphere() {
     gateMatrix: string,
     oldState: string,
     newState: string
-  ) => `$$ ${gateName} | \\psi \\rangle_{${gateArray.length}} =
+  ) => `${gateName} | \\psi \\rangle_{${gateArray.length}} =
   ${gateMatrix}
   \\cdot ${oldState}
-  = ${newState}
-  $$`;
+  = ${newState}`;
 
   function rotate(gate: string): void {
     const priorState = vec2(newState);
@@ -607,7 +608,9 @@ export function BlochSphere() {
       <div style="font-size: 0.8em; position: absolute; left: 600px; top: 50px; height: 90vh; min-width: 200px; background: var(--vscode-editor-background); overflow-y: scroll; display: flex; flex-direction: column; align-items: flex-start;">
         {gateArray.map((str) => (
           <div style="border-bottom: 1px dotted gray; text-align: left">
-            <div dangerouslySetInnerHTML={{ __html: md.render(str) }}></div>
+            <div
+              dangerouslySetInnerHTML={{ __html: katex.renderToString(str) }}
+            ></div>
           </div>
         ))}
       </div>
