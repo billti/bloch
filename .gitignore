@@ -1,4 +1,5 @@
 .DS_Store
+fonts/
 node_modules/
 view.js
 view.css
