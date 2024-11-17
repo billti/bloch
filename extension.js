@@ -15,7 +15,7 @@ async function activate(context) {
             }
         );
         const webviewScript = vscode.Uri.joinPath(context.extensionUri, "view.js");
-        const katexCss = vscode.Uri.joinPath(context.extensionUri, "katex.min.css");
+        const katexCss = vscode.Uri.joinPath(context.extensionUri, "view.css");
         const extScript = panel.webview.asWebviewUri(webviewScript);
         const extCss = panel.webview.asWebviewUri(katexCss);
         panel.webview.html = getHtml(extScript, extCss);

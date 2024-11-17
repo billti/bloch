@@ -39,6 +39,8 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js";
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
 
+import { GUI } from "three/examples/jsm/libs/lil-gui.module.min.js"
+
 import * as fontJson from "three/examples/fonts/helvetiker_regular.typeface.json";
 
 import {
