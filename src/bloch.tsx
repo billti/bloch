@@ -173,6 +173,7 @@ function createText(scene: Scene, done: () => void) {
 const rotationTimeMs = 100;
 
 class BlochRenderer {
+  // gui: GUI;
   scene: Scene;
   camera: PerspectiveCamera;
   renderer: WebGLRenderer;
@@ -185,6 +186,25 @@ class BlochRenderer {
   rotations: Rotations;
 
   constructor(canvas: HTMLCanvasElement) {
+    // Sample GUI controls
+    // this.gui = new GUI();
+    // const guiControls = {
+    //   gates: "",
+    //   rz: 0.0,
+    //   onH() {},
+    //   onX() {},
+    //   onY() {},
+    //   onZ() {},
+    // };
+
+    // this.gui.add(guiControls, "gates").onFinishChange((value) => {});
+    // this.gui.add(guiControls, "rz", 0.0, 6.28, 0.01).onFinishChange((value) => {});
+    // this.gui.add(guiControls, "onH").name("H");
+    // this.gui.add(guiControls, "onX").name("X");
+    // this.gui.add(guiControls, "onY").name("Y");
+    // this.gui.add(guiControls, "onZ").name("Z");
+
+
     this.rotations = new Rotations(64);
 
     // For VS Code, WebView body attribute 'data-vscode-theme-kind' will contain 'light' if light theme is active.
@@ -584,7 +604,7 @@ export function BlochSphere() {
   return (
     <div style="position: relative;">
       <canvas ref={canvasRef} width="600" height="600"></canvas>
-      <div style="font-size: 0.8em; position: absolute; left: 600px; top: 50px; height: 700px; min-width: 200px; background: #eee; overflow-y: scroll; display: flex; flex-direction: column; align-items: flex-start;">
+      <div style="font-size: 0.8em; position: absolute; left: 600px; top: 50px; height: 90vh; min-width: 200px; background: var(--vscode-editor-background); overflow-y: scroll; display: flex; flex-direction: column; align-items: flex-start;">
         {gateArray.map((str) => (
           <div style="border-bottom: 1px dotted gray; text-align: left">
             <div dangerouslySetInnerHTML={{ __html: md.render(str) }}></div>
