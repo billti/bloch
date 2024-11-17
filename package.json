@@ -1,0 +1,47 @@
+{
+    "publisher": "billti",
+    "name": "bloch",
+    "version": "0.1.0",
+    "displayName": "Bloch sphere visualization",
+    "keywords": [
+        "quantum",
+        "qubit",
+        "bloch"
+    ],
+    "type": "commonjs",
+    "engines": {
+        "vscode": "^1.95.0"
+    },
+    "categories": [
+        "Education",
+        "Visualization"
+    ],
+    "activationEvents": [],
+    "browser": "./extension.js",
+    "virtualWorkspaces": true,
+    "contributes": {
+        "commands": [
+            {
+                "command": "bloch-open",
+                "title": "Bloch sphere"
+            }
+        ]
+    },
+    "license": "MIT",
+    "devDependencies": {
+        "@types/markdown-it": "^14.1.2",
+        "@types/three": "^0.170.0",
+        "@types/vscode": "^1.95.0",
+        "@vscode/markdown-it-katex": "^1.1.0",
+        "esbuild": "^0.24.0",
+        "katex": "^0.16.11",
+        "markdown-it": "^14.1.0",
+        "preact": "^10.24.3",
+        "three": "^0.170.0",
+        "typescript": "^5.6.3"
+    },
+    "scripts": {
+        "build:dev": "esbuild src/view.ts --bundle --sourcemap --watch --outfile=view.js",
+        "build": "esbuild src/view.ts --bundle --minify --outfile=view.js"
+    }
+}

@@ -1,0 +1,6 @@
+.vscode
+node_modules
+src
+packge-lock.json
+todo.txt
+view.js.map
