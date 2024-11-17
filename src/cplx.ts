@@ -1,5 +1,5 @@
-// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+// Copyright (c) Bill Ticehurst
+// Licensed under the MIT License
 
 import { Quaternion, Vector3 } from "three";
 

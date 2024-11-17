@@ -1,3 +1,6 @@
+// Copyright (c) Bill Ticehurst
+// Licensed under the MIT License
+
 /* TODO:
 
 - Rearrange the UI to follow the design

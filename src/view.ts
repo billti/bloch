@@ -1,3 +1,5 @@
+// Copyright (c) Bill Ticehurst
+// Licensed under the MIT License
 
 import "./view.css";
 

@@ -1,3 +1,6 @@
+// Copyright (c) Bill Ticehurst
+// Licensed under the MIT License
+
 //@ts-check
 
 var vscode = require('vscode');
@@ -15,20 +18,20 @@ async function activate(context) {
             }
         );
         const webviewScript = vscode.Uri.joinPath(context.extensionUri, "view.js");
-        const katexCss = vscode.Uri.joinPath(context.extensionUri, "view.css");
+        const webviewCss = vscode.Uri.joinPath(context.extensionUri, "view.css");
         const extScript = panel.webview.asWebviewUri(webviewScript);
-        const extCss = panel.webview.asWebviewUri(katexCss);
+        const extCss = panel.webview.asWebviewUri(webviewCss);
         panel.webview.html = getHtml(extScript, extCss);
     }));
 }
 
 /** @param {vscode.Uri} source */
-/** @param {vscode.Uri} katexCss */
-function getHtml(source, katexCss) {
+/** @param {vscode.Uri} css */
+function getHtml(source, css) {
     return `<!DOCTYPE html>
 <html>
   <head>
-    <link rel="stylesheet" href="${katexCss}">
+    <link rel="stylesheet" href="${css}">
   </head>
   <body><script src="${source}"></script></body>
 </html>    
