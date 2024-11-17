@@ -3,15 +3,41 @@
 
 @import url("../node_modules/katex/dist/katex.min.css");
 
-html, body {
-    margin: 0;
-    height: 100%;
+html,
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  box-sizing: border-box;
 }
 
 #sphereCanvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+  position: fixed;
+  display: block;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+}
+
+.gate-buttons {
+  position: relative;
+}
+
+.math-list {
+  font-size: 0.8em;
+  position: absolute;
+  left: 600px;
+  top: 50px;
+  height: 90vh;
+  min-width: 200px;
+  overflow-y: scroll;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }

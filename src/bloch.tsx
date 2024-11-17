@@ -197,7 +197,7 @@ class BlochRenderer {
       trailColor: "#663399",
       showAxes: true,
       showEvolutionAsMatrices: false,
-      theme: "Default"
+      theme: "Default",
     };
 
     this.gui.title("UI settings");
@@ -206,10 +206,14 @@ class BlochRenderer {
     this.gui.add(guiControls, "trailLength", 0, 1.0).name("Trail length");
     this.gui.add(guiControls, "transparency", 0, 1.0).name("Transparency");
     this.gui.add(guiControls, "showAxes").name("Show axes");
-    this.gui.add(guiControls, "showEvolutionAsMatrices").name("Evolve matrices");
+    this.gui
+      .add(guiControls, "showEvolutionAsMatrices")
+      .name("Evolve matrices");
     this.gui.addColor(guiControls, "sphereColor").name("Sphere color");
     this.gui.addColor(guiControls, "trailColor").name("Trail color");
-    this.gui.add(guiControls, "theme", ["Default", "Light", "Dark"]).name("Theme");
+    // this.gui
+    //   .add(guiControls, "theme", ["Default", "Light", "Dark"])
+    //   .name("Theme");
     this.gui.close();
 
     this.rotations = new Rotations(64);
@@ -227,6 +231,8 @@ class BlochRenderer {
       antialias: true,
       alpha: true,
     });
+
+    window.addEventListener("resize", () => this.render());
 
     const scene = new Scene();
     const camera = new PerspectiveCamera(
@@ -469,7 +475,23 @@ class BlochRenderer {
     this.render();
   }
 
+  resizeRendererToDisplaySize() {
+    const canvas = this.renderer.domElement;
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+    const needResize = canvas.width !== width || canvas.height !== height;
+    if (needResize) {
+      this.renderer.setSize(width, height, false);
+    }
+    return needResize;
+  }
+
   render() {
+    if (this.resizeRendererToDisplaySize()) {
+      const canvas = this.renderer.domElement;
+      this.camera.aspect = canvas.clientWidth / canvas.clientHeight;
+      this.camera.updateProjectionMatrix();
+    }
     this.controls.update();
     this.renderer.render(this.scene, this.camera);
   }
@@ -607,8 +629,8 @@ export function BlochSphere() {
 
   return (
     <div style="position: relative;">
-      <canvas ref={canvasRef} width="600" height="600"></canvas>
-      <div style="font-size: 0.8em; position: absolute; left: 600px; top: 50px; height: 90vh; min-width: 200px; background: var(--vscode-editor-background); overflow-y: scroll; display: flex; flex-direction: column; align-items: flex-start;">
+      <canvas ref={canvasRef} id="sphereCanvas"></canvas>
+      <div class="math-list">
         {gateArray.map((str) => (
           <div style="border-bottom: 1px dotted gray; text-align: left">
             <div
@@ -617,7 +639,7 @@ export function BlochSphere() {
           </div>
         ))}
       </div>
-      <div class="qs-gate-buttons">
+      <div class="gate-buttons">
         <button type="button" onClick={() => rotate("X")}>
           X
         </button>
