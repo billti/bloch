@@ -45,6 +45,7 @@
     "scripts": {
         "build:dev": "esbuild src/view.ts --bundle --sourcemap --watch \"--external:*.woff\" \"--external:*.woff2\" \"--external:*.ttf\" --outfile=view.js",
         "build": "esbuild src/view.ts --bundle --minify \"--external:*.woff\" \"--external:*.woff2\" \"--external:*.ttf\" --outfile=view.js",
-        "fonts": "mkdir ./fonts && cp node_modules/katex/dist/fonts/{KaTeX_Main-Regular,KaTeX_Math-Italic,KaTeX_Size3-Regular,KaTeX_Size4-Regular}.woff2 ./fonts"
+        "fonts": "mkdir -p ./fonts && cp node_modules/katex/dist/fonts/{KaTeX_Main-Regular,KaTeX_Math-Italic,KaTeX_Size3-Regular,KaTeX_Size4-Regular}.woff2 ./fonts",
+        "release": "npm run fonts && npm run build && vsce package"
     }
 }
