@@ -1,0 +1,5 @@
+@import url("../node_modules/katex/dist/katex.min.css");
+
+body {
+    margin: 0;
+}

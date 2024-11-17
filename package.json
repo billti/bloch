@@ -41,7 +41,7 @@
         "typescript": "^5.6.3"
     },
     "scripts": {
-        "build:dev": "esbuild src/view.ts --bundle --sourcemap --watch --outfile=view.js",
-        "build": "esbuild src/view.ts --bundle --minify --outfile=view.js"
+        "build:dev": "esbuild src/view.ts --bundle --sourcemap --watch \"--external:*.woff\" \"--external:*.woff2\" \"--external:*.ttf\" --outfile=view.js",
+        "build": "esbuild src/view.ts --bundle --minify \"--external:*.woff\" \"--external:*.woff2\" \"--external:*.ttf\" --outfile=view.js"
     }
 }
