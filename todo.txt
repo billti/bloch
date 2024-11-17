@@ -1,2 +1,0 @@
-Copy over the bloch sphere impl, and add rotation synthesis.
-Configure for personal extension and publish
