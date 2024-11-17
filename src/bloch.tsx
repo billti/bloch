@@ -3,22 +3,20 @@
 
 /* TODO:
 
-- Rearrange the UI to follow the design
-- See if the 'sphere' can take the entire window, with others overlayed (and honor resizing)
-  - https://threejs.org/manual/#en/responsive
+- Do the correct math and LaTeX rendering for Rx, Ry, Rz
+
+- Add a help pop-up for the gate sequence textarea
 - Wire up the settings to the renderer (rotation speed, trail length, colors, etc.)
 - Save/restore settings
 - Use CSS to honor the light/dark theme for the settings
-- Only show the equation once it starts
-- Add ability to collapse/open the equation list
-- Draw the equator (z plane line)
+- Fix warning about unicode chars in KaTeX
+- Only show the equation once the rotation for it starts
 - Show the equations from state vector to bloch angles
-- Show the matrix to be applied when hovering over a gate
-- Add the trailing dots with a slider for history and fade out speed
-- Add a slider for rotation speed
 - Add a slider to drag back and forth to replay the gates
 - Scroll to and highlight the current equation as history moves forward and back
+- Show the matrix to be applied when hovering over a gate
 - Show a pop-up over the manual entry box when focused to show the resulting matrix
+- Draw the equator option (z plane line)
 
 To convert basis state coeffeicients a & b into a point on the Bloch sphere:
  - Calculate the angle theta = 2 * acos(magnitute(a))
@@ -174,7 +172,7 @@ function createText(scene: Scene, done: () => void) {
 const rotationTimeMs = 100;
 
 class BlochRenderer {
-  gui: GUI;
+  // gui: GUI;
   scene: Scene;
   camera: PerspectiveCamera;
   renderer: WebGLRenderer;
@@ -188,33 +186,29 @@ class BlochRenderer {
 
   constructor(canvas: HTMLCanvasElement) {
     // Sample GUI controls. See https://lil-gui.georgealways.com/
-    this.gui = new GUI();
-    const guiControls = {
-      rotationSpeed: 500,
-      trailLength: 1.0,
-      transparency: 0.2,
-      sphereColor: "#404080",
-      trailColor: "#663399",
-      showAxes: true,
-      showEvolutionAsMatrices: false,
-      theme: "Default",
-    };
+    // this.gui = new GUI();
+    // const guiControls = {
+    //   rotationSpeed: 500,
+    //   trailLength: 1.0,
+    //   transparency: 0.2,
+    //   sphereColor: "#404080",
+    //   trailColor: "#663399",
+    //   showAxes: true,
+    //   showEvolutionAsMatrices: false,
+    // };
 
-    this.gui.title("UI settings");
+    // this.gui.title("UI settings");
 
-    this.gui.add(guiControls, "rotationSpeed", 0, 1000).name("Rotation speed");
-    this.gui.add(guiControls, "trailLength", 0, 1.0).name("Trail length");
-    this.gui.add(guiControls, "transparency", 0, 1.0).name("Transparency");
-    this.gui.add(guiControls, "showAxes").name("Show axes");
-    this.gui
-      .add(guiControls, "showEvolutionAsMatrices")
-      .name("Evolve matrices");
-    this.gui.addColor(guiControls, "sphereColor").name("Sphere color");
-    this.gui.addColor(guiControls, "trailColor").name("Trail color");
+    // this.gui.add(guiControls, "rotationSpeed", 0, 1000).name("Rotation speed");
+    // this.gui.add(guiControls, "trailLength", 0, 1.0).name("Trail length");
+    // this.gui.add(guiControls, "transparency", 0, 1.0).name("Transparency");
+    // this.gui.add(guiControls, "showAxes").name("Show axes");
     // this.gui
-    //   .add(guiControls, "theme", ["Default", "Light", "Dark"])
-    //   .name("Theme");
-    this.gui.close();
+    //   .add(guiControls, "showEvolutionAsMatrices")
+    //   .name("Evolve matrices");
+    // this.gui.addColor(guiControls, "sphereColor").name("Sphere color");
+    // this.gui.addColor(guiControls, "trailColor").name("Trail color");
+    // this.gui.close();
 
     this.rotations = new Rotations(64);
 
@@ -503,7 +497,11 @@ export function BlochSphere() {
 
   const [gateArray, setGateArray] = useState<string[]>([]);
   const [state, setState] = useState(Ket0);
-  const [rzAngle, setRzAngle] = useState(0);
+  const [rAngles, setRAngles] = useState({"rx": "0.0", "ry": "0.0", "rz": "0.0"});
+  const [rzSynth, setRzSynth] = useState(false);
+  const [gateList, setGateList] = useState("");
+  const [mathOpen, setMathOpen] = useState(false);
+
   let newState = state;
 
   useEffect(() => {
@@ -522,7 +520,7 @@ export function BlochSphere() {
   \\cdot ${oldState}
   = ${newState}`;
 
-  function rotate(gate: string): void {
+  function rotate(gate: string, angle = 0): void {
     const priorState = vec2(newState);
     if (renderer.current) {
       switch (gate) {
@@ -592,6 +590,45 @@ export function BlochSphere() {
             getLaTeX("H", gateLaTeX.H, priorState.toLaTeX(), newState.toLaTeX())
           );
           break;
+        case "Rx":
+          renderer.current.rotateX(angle);
+          // TODO: Correct the below for the angle given
+          newState = PauliZ.mulVec2(newState);
+          gateArray.push(
+            getLaTeX(
+              "Rx",
+              gateLaTeX.Z,
+              priorState.toLaTeX(),
+              newState.toLaTeX()
+            )
+          );
+          break;
+        case "Ry":
+          renderer.current.rotateY(angle);
+          // TODO: Correct the below for the angle given
+          newState = PauliZ.mulVec2(newState);
+          gateArray.push(
+            getLaTeX(
+              "Ry",
+              gateLaTeX.Z,
+              priorState.toLaTeX(),
+              newState.toLaTeX()
+            )
+          );
+          break;
+        case "Rz":
+          renderer.current.rotateZ(angle);
+          // TODO: Correct the below for the angle given
+          newState = PauliZ.mulVec2(newState);
+          gateArray.push(
+            getLaTeX(
+              "Rz",
+              gateLaTeX.Z,
+              priorState.toLaTeX(),
+              newState.toLaTeX()
+            )
+          );
+          break;
         default:
           console.error("Unknown gate: " + gate);
       }
@@ -600,107 +637,109 @@ export function BlochSphere() {
     setGateArray([...gateArray]);
   }
 
+  function onRotationGate(gate: string, target: EventTarget | null) {
+    let angle = 0;
+    if (!target) throw "No target element";
+    const input = (target as HTMLElement).nextElementSibling as HTMLInputElement;
+    angle = parseFloat(input.value);
+
+    if (rzSynth && gate === "Rz") {
+      const angleIdx = Math.round(angle * 200) % 1256;
+      const input = document.getElementById("gate_sequence") as HTMLTextAreaElement;
+      input.value = rzOps[angleIdx];
+      setGateList(input.value);
+    } else {
+      rotate(gate, angle);
+    }
+  }
+
   function reset() {
     setGateArray([]);
     setState(vec2(Ket0));
+    setRAngles({"rx": "0.0", "ry": "0.0", "rz": "0.0"});
+    setRzSynth(false);
+    setGateList("");
     if (renderer.current) {
       renderer.current.reset();
     }
   }
 
   function applyGates(e: Event) {
-    const input = document.getElementById("run_gates") as HTMLInputElement;
+    const input = document.getElementById("gate_sequence") as HTMLTextAreaElement;
     const text = input.value;
+    // TODO: Handle "Rz(0.5)" type input, and "Ta" or "Sa" for "t" and "s".
+    // Also, strip out any whitespace, commas, etc.
     for (const gate of text) {
       rotate(gate);
     }
   }
 
-  function sliderChange(e: Event) {
-    const slider = e.target as HTMLInputElement;
-    const angleIdx = Math.round(parseFloat(slider.value) * 200) % 1256;
-    const button = document.getElementById("rz_button") as HTMLSpanElement;
-    button.textContent = `Rz(${slider.value})`;
+  function changeRzSynth(e: Event) {
+    e.preventDefault();
+    setRzSynth((e.target as HTMLInputElement).checked);
+  }
 
-    const input = document.getElementById("run_gates") as HTMLInputElement;
-    input.value = rzOps[angleIdx];
-    setRzAngle(parseFloat(slider.value));
+  function onRChange(gate: string, e: Event) {
+    e.preventDefault();
+    const input = e.target as HTMLInputElement;
+    const value = input.value;
+    setRAngles({...rAngles, [gate]: value});
+  }
+
+  const mathListClass = mathOpen ? "math-list" : "math-list collapsed";
+
+  function onCollapse() {
+    setMathOpen(!mathOpen);
   }
 
   return (
     <div style="position: relative;">
       <canvas ref={canvasRef} id="sphereCanvas"></canvas>
-      <div class="math-list">
+      <div class='left-controls'>
+        <div class="controls-heading">Unitary gates</div>
+        <div class="gate-buttons">
+          <button type="button" onClick={() => rotate("X")}>X</button>
+          <button type="button" onClick={() => rotate("Y")}>Y</button>
+          <button type="button" onClick={() => rotate("Z")}>Z</button>
+          <button type="button" onClick={() => rotate("H")}>H</button>
+        </div>
+        <div class="gate-buttons">
+          <button type="button" onClick={() => rotate("S")}>S</button>
+          <button type="button" onClick={() => rotate("s")}>S†</button>
+          <button type="button" onClick={() => rotate("T")}>T</button>
+          <button type="button" onClick={() => rotate("t")}>T†</button>
+        </div>
+        <div class="gate-buttons">
+          <button type="button" onClick={(e) => onRotationGate("Rx", e.target)}>Rx</button>
+          <input type="number" min={0} max={Math.PI * 2} size={4} value={rAngles.rx} onInput={(e) => onRChange("rx", e)} />
+        </div>
+        <div class="gate-buttons">
+          <button type="button" onClick={(e) => onRotationGate("Ry", e.target)}>Ry</button>
+          <input type="number" min={0} max={Math.PI * 2} size={4} value={rAngles.ry} onInput={(e) => onRChange("ry", e)} />
+        </div>
+        <div class="gate-buttons">
+          <button type="button" onClick={(e) => onRotationGate("Rz", e.target)}>Rz</button>
+          <input type="number" min={0} max={Math.PI * 2} size={4} value={rAngles.rz} onInput={(e) => onRChange("rz", e)} />
+        </div>
+          <label>
+            Synthesize Rz gate
+            <input type="checkbox" checked={rzSynth} onChange={changeRzSynth} />
+          </label>
+        <div class="controls-heading">Gate sequence</div>
+        <textarea id="gate_sequence" rows={3} cols={16} placeholder={"Enter some gates"} value={gateList} onInput={(e) => setGateList((e.target as HTMLTextAreaElement).value)} />
+        <button type="button" onClick={applyGates}>Run</button>
+        <button type="button" onClick={reset}>Reset</button>
+      </div>
+      <div class={mathListClass}>
         {gateArray.map((str) => (
-          <div style="border-bottom: 1px dotted gray; text-align: left">
+          <div class="math-list-entry">
             <div
               dangerouslySetInnerHTML={{ __html: katex.renderToString(str) }}
             ></div>
           </div>
         ))}
       </div>
-      <div class="gate-buttons">
-        <button type="button" onClick={() => rotate("X")}>
-          X
-        </button>
-        <button type="button" onClick={() => rotate("Y")}>
-          Y
-        </button>
-        <button type="button" onClick={() => rotate("Z")}>
-          Z
-        </button>
-        <button type="button" onClick={() => rotate("H")}>
-          H
-        </button>
-        <button type="button" onClick={() => rotate("S")}>
-          S
-        </button>
-        <button type="button" onClick={() => rotate("s")}>
-          S†
-        </button>
-        <button type="button" onClick={() => rotate("T")}>
-          T
-        </button>
-        <button type="button" onClick={() => rotate("t")}>
-          T†
-        </button>
-
-        <button style="margin: 0 8px;" type="button" onClick={reset}>
-          Reset
-        </button>
-      </div>
-      <div style="margin-top: 12px">
-        <input
-          id="run_gates"
-          type="text"
-          size={60}
-          placeholder="Enter gates then tab away"
-        />
-        <button
-          style="margin-left: 8px; padding: 0 4px"
-          type="button"
-          onClick={applyGates}
-        >
-          Run
-        </button>
-      </div>
-      <div style="margin-top: 8px">
-        <input
-          label="Rz"
-          type="range"
-          min="0"
-          max="6.28"
-          step="0.005"
-          value={rzAngle}
-          onInput={sliderChange}
-        />
-        <span
-          style="margin: 0 12px; font-style: italic; font-size: 1.2em;"
-          id="rz_button"
-        >
-          Rz(0)
-        </span>
-      </div>
+      <div class="math-collapse" onClick={onCollapse}>{mathOpen ? "Collapse evolution" : "Show evolution"}</div>
     </div>
   );
 }

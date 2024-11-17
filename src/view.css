@@ -25,19 +25,95 @@ body {
   height: 100vh;
 }
 
-.gate-buttons {
-  position: relative;
+.left-controls {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    margin: 8px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.gate-buttons button {
+    width: 38px;
+    margin: 3px;
+    border: none;
+    border-radius: 2px;
+}
+
+.gate-buttons input[type="number"] {
+    width: 78px;
+    border: none;
+    border-radius: 2px;
+    margin-left: 3px;
+}
+
+.left-controls * {
+    margin: 3px;
+}
+
+.left-controls input[type="checkbox"] {
+    width: 1.2em;
+    height: 1.2em;
+}
+
+.left-controls textarea {
+    font-size: 1em;
+    font-family: monospace;
+    margin: 8px 3px;
+}
+
+.controls-heading {
+    font-size: 1.1em;
+    font-weight: bold;
+    margin: 12px 3px 3px;
+}
+
+.math-collapse {
+    position:absolute;
+    cursor: pointer;
+    right: 0;
+    top: 75px;
+    background-color: black;
+    color: white;
+    writing-mode: vertical-rl;
+    padding: 8px 4px;
+    margin: 0;
+    text-wrap: nowrap;
 }
 
 .math-list {
   font-size: 0.8em;
   position: absolute;
-  left: 600px;
-  top: 50px;
-  height: 90vh;
-  min-width: 200px;
+  background-color: rgba(0, 0, 0, 0.75);
+  color: white;
+  right: 24px;
+  top: 75px;
+  max-height: calc(100vh - 75px);
+  width: auto;
   overflow-y: scroll;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  border: 0.5px solid gray;
+}
+
+/* Dark mode (light mode high contrast is 'vscode-high-contrast-light') */
+.vscode-light .math-list, .vscode-high-contrast-light .math-list {
+  background-color: rgba(255, 255, 255, 0.75);
+  color: black;
+}
+
+.collapsed {
+  display: none;
+}
+
+.math-list-entry {
+    width: 100%;
+    padding: 4px;
+    border-bottom: 1px dotted gray;
+    text-align: left
 }
