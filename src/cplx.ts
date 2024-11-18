@@ -399,6 +399,10 @@ export class M2x2 {
   toShortString() {
     return `[[${this.a.toString()},${this.b.toString()}],[${this.c.toString()},${this.d.toString()}]]`;
   }
+
+  toLaTeX() {
+    return String.raw`\begin{bmatrix} ${this.a.toLaTeX()} & ${this.b.toLaTeX()} \\ ${this.c.toLaTeX()} & ${this.d.toLaTeX()} \end{bmatrix}`;
+  }
 }
 
 export function m2x2(v: M2x2 | (number | Cplx)[] | string): M2x2 {
@@ -418,6 +422,21 @@ export function m2x2(v: M2x2 | (number | Cplx)[] | string): M2x2 {
     }
   }
   throw Error("Invalid input paramter to m2x2");
+}
+
+export function rotationMatrix(axis: 'X' | 'Y' | 'Z', angle: number): M2x2 {
+  const c_2 = Math.cos(angle / 2);
+  const s_2 = Math.sin(angle / 2);
+  switch (axis) {
+    case 'X':
+      return m2x2([c_2, new Cplx(0, -s_2), new Cplx(0, -s_2), c_2]);
+    case 'Y':
+      return m2x2([c_2, -s_2, s_2, c_2]);
+    case 'Z':
+      return m2x2([new Cplx(c_2, -s_2), 0, 0, new Cplx(c_2, s_2)]);
+    default:
+      throw Error("Invalid axis");
+  }
 }
 
 export function e_to_ix(x: number): Cplx {

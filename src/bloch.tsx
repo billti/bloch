@@ -3,8 +3,6 @@
 
 /* TODO:
 
-- Do the correct math and LaTeX rendering for Rx, Ry, Rz
-
 - Add a help pop-up for the gate sequence textarea
 - Wire up the settings to the renderer (rotation speed, trail length, colors, etc.)
 - Save/restore settings
@@ -62,6 +60,8 @@ import {
   SGate,
   TGate,
   Hadamard,
+  numToStr,
+  rotationMatrix,
 } from "../src/cplx.js";
 
 import rzOps from "./rz-array.json";
@@ -84,6 +84,9 @@ const gateLaTeX = {
   T: "\\begin{bmatrix} 1 & 0 \\\\ 0 & e^{i {\\pi \\over 4}} \\end{bmatrix}",
   TA: "\\begin{bmatrix} 1 & 0 \\\\ 0 & e^{-i {\\pi \\over 4}} \\end{bmatrix}",
   H: "{1 \\over \\sqrt{2}} \\begin{bmatrix} 1 & 1 \\\\ 1 & -1 \\end{bmatrix}",
+  Rx: "\\begin{bmatrix} \\cos({\\theta \\over 2}) & -i \\sin({\\theta \\over 2}) \\\\ -i \\sin({\\theta \\over 2}) & \\cos({\\theta \\over 2}) \\end{bmatrix}",
+  Ry: "\\begin{bmatrix} \\cos({\\theta \\over 2}) & - \\sin({\\theta \\over 2}) \\\\ \\sin({\\theta \\over 2}) & \\cos({\\theta \\over 2}) \\end{bmatrix}",
+  Rz: "\\begin{bmatrix} \\exp({-i \\theta / 2}) & 0 \\\\ 0 & \\exp({i \\theta / 2}) \\end{bmatrix}",
 };
 
 // See https://gizma.com/easing/#easeInOutSine
@@ -592,12 +595,12 @@ export function BlochSphere() {
           break;
         case "Rx":
           renderer.current.rotateX(angle);
-          // TODO: Correct the below for the angle given
-          newState = PauliZ.mulVec2(newState);
+          const rxMat = rotationMatrix('X', angle);
+          newState = rxMat.mulVec2(newState);
           gateArray.push(
             getLaTeX(
-              "Rx",
-              gateLaTeX.Z,
+              `Rx(${numToStr(angle)})`,
+              rxMat.toLaTeX(),
               priorState.toLaTeX(),
               newState.toLaTeX()
             )
@@ -605,12 +608,12 @@ export function BlochSphere() {
           break;
         case "Ry":
           renderer.current.rotateY(angle);
-          // TODO: Correct the below for the angle given
-          newState = PauliZ.mulVec2(newState);
+          const ryMat = rotationMatrix('Y', angle);
+          newState = ryMat.mulVec2(newState);
           gateArray.push(
             getLaTeX(
-              "Ry",
-              gateLaTeX.Z,
+              `Ry(${numToStr(angle)})`,
+              ryMat.toLaTeX(),
               priorState.toLaTeX(),
               newState.toLaTeX()
             )
@@ -618,12 +621,12 @@ export function BlochSphere() {
           break;
         case "Rz":
           renderer.current.rotateZ(angle);
-          // TODO: Correct the below for the angle given
-          newState = PauliZ.mulVec2(newState);
+          const rzMat = rotationMatrix('Z', angle);
+          newState = rzMat.mulVec2(newState);
           gateArray.push(
             getLaTeX(
-              "Rz",
-              gateLaTeX.Z,
+              `Rz(${numToStr(angle)})`,
+              rzMat.toLaTeX(),
               priorState.toLaTeX(),
               newState.toLaTeX()
             )
