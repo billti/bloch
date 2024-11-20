@@ -12,8 +12,6 @@
 - Show the equations from state vector to bloch angles
 - Add a slider to drag back and forth to replay the gates
 - Scroll to and highlight the current equation as history moves forward and back
-- Show the matrix to be applied when hovering over a gate
-- Show a pop-up over the manual entry box when focused to show the resulting matrix
 - Draw the equator option (z plane line)
 
 To convert basis state coeffeicients a & b into a point on the Bloch sphere:
@@ -808,21 +806,24 @@ export function BlochSphere() {
         </div>
         <div class="gate-buttons">
           <button type="button" data-unitary="Rx" onClick={(e) => onRotationGate("Rx", e.target)}>Rx</button>
-          <input type="number" data-angle="rx" min={0} max={Math.PI * 2} size={4} value={rAngles.rx} onInput={onRotationInput} />
+          <input type="number" data-angle="rx" min={0} max={Math.PI * 2} step={0.1} size={4} value={rAngles.rx} onInput={onRotationInput} />
         </div>
         <div class="gate-buttons">
           <button type="button" data-unitary="Ry" onClick={(e) => onRotationGate("Ry", e.target)}>Ry</button>
-          <input type="number" data-angle="ry" min={0} max={Math.PI * 2} size={4} value={rAngles.ry} onInput={onRotationInput} />
+          <input type="number" data-angle="ry" min={0} max={Math.PI * 2} step={0.1} size={4} value={rAngles.ry} onInput={onRotationInput} />
         </div>
         <div class="gate-buttons">
           <button type="button" data-unitary="Rz" onClick={(e) => onRotationGate("Rz", e.target)}>Rz</button>
-          <input type="number" data-angle="rz" min={0} max={Math.PI * 2} size={4} value={rAngles.rz} onInput={onRotationInput} />
+          <input type="number" data-angle="rz" min={0} max={Math.PI * 2} step={0.1} size={4} value={rAngles.rz} onInput={onRotationInput} />
         </div>
           <label>
             Synthesize Rz gate
             <input type="checkbox" checked={rzSynth} onChange={changeRzSynth} />
           </label>
-        <div class="controls-heading">Gate sequence</div>
+        <div class="controls-heading">
+          <span>Gate sequence</span>
+          <a href="#help" onClick={() => (document.querySelector('.help-box') as HTMLDivElement).style.display = 'block'} style="font-size: 0.75em; outline: none;">(help)</a>
+        </div>
         <textarea id="gate_sequence" rows={3} cols={16} placeholder={"Enter some gates"} value={gateList} onInput={onGateInput} />
         <button type="button" onClick={applyGates}>Run</button>
         <button type="button" onClick={reset}>Reset</button>
@@ -841,6 +842,12 @@ export function BlochSphere() {
         ))}
       </div>
       <div class="math-collapse" onClick={onCollapse}>{mathOpen ? "Collapse evolution" : "Show evolution"}</div>
+      <div class='help-box' onClick={e => (e.currentTarget as HTMLDivElement).style.display = 'none'}>
+        <p>Enter gates into the text area then click 'Run' to apply them. They are applied sequentially in the order given.</p>
+        <p>Valid gates are X, Y, Z, H, S, T. Use lowercase for adjoint 's' or 't'. For example, 'THt' would apply a T gate, a Hadamard gate, then a T-adjoint gate.</p>
+        <p>Gates may be separated by whitespace or commas, or have no separation.</p>
+        <p>Click on this help box to close it.</p>
+      </div>
     </div>
   );
 }
