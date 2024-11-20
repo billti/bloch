@@ -62,6 +62,7 @@ import {
   Hadamard,
   numToStr,
   rotationMatrix,
+  Ident,
 } from "../src/cplx.js";
 
 import rzOps from "./rz-array.json";
@@ -687,6 +688,7 @@ export function BlochSphere() {
     const input = e.target as HTMLInputElement;
     const value = input.value;
     setRAngles({...rAngles, [gate]: value});
+    showUnitary(e);
   }
 
   const mathListClass = mathOpen ? "math-list" : "math-list collapsed";
@@ -695,43 +697,139 @@ export function BlochSphere() {
     setMathOpen(!mathOpen);
   }
 
+  function showUnitary(e: Event) {
+    const unitaryDiv = document.querySelector(".unitary-matrix") as HTMLDivElement;
+    const unitaryContainer = unitaryDiv.parentElement! 
+  
+    // Deal with the case when hovering over a button for a gate
+    const unitary = (e.target as HTMLElement)?.dataset?.["unitary"];
+    if (unitary) {
+      unitaryDiv.innerHTML = katex.renderToString((gateLaTeX as any)[unitary]);
+      unitaryContainer.style.display = "block";
+      return;
+    }
+    // Deal with the case when focused on an input for a rotation
+    const angle = (e.target as HTMLElement)?.dataset?.["angle"];
+    if (angle) {
+      const input = e.target as HTMLInputElement;
+      const value = parseFloat(input.value);
+      if (typeof value === "number" && !isNaN(value)) {
+        const matrix =
+          angle === "rx"
+            ? rotationMatrix("X", value)
+            : angle === "ry"
+            ? rotationMatrix("Y", value)
+            : angle === "rz"
+            ? rotationMatrix("Z", value)
+            : undefined;
+        if (matrix) {
+          unitaryDiv.innerHTML = katex.renderToString(matrix.toLaTeX());
+          unitaryContainer.style.display = "block";
+          return;
+        }
+      }
+    }
+    // Deal with updates to the gate sequence textarea
+    if ((e.target as HTMLElement).id === "gate_sequence") {
+      const gates = (e.target as HTMLTextAreaElement).value;
+      if (gates) {
+        let mat = Ident;
+        for(let i = 0; i < gates.length; i++) {
+          switch(gates[i]) {
+            case "X":
+              mat = PauliX.mul(mat);
+              break;
+            case "Y":
+              mat = PauliY.mul(mat);
+              break;
+            case "Z":
+              mat = PauliZ.mul(mat);
+              break;
+            case "H":
+              mat = Hadamard.mul(mat);
+              break;
+            case "S":
+              mat = SGate.mul(mat);
+              break;
+            case "s":
+              mat = SGate.adjoint().mul(mat);
+              break;
+            case "T":
+              mat = TGate.mul(mat);
+              break;
+            case "t":
+              mat = TGate.adjoint().mul(mat);
+              break;
+            default:
+              // Skip anything unrecognized
+          }
+        }
+        unitaryDiv.innerHTML = katex.renderToString(mat.toLaTeX());
+        unitaryContainer.style.display = "block";
+        return;
+      }
+    }
+    // If we got here, we didn't find something to display, so just ensure it is hidden
+    hideUnitary(e);
+  }
+
+  function hideUnitary(e: Event) {
+    const unitaryDiv = document.querySelector(".unitary-matrix-help") as HTMLDivElement;
+    unitaryDiv.style.display = "none";
+  }
+
+  function onRotationInput(e: Event) {
+    const angle = (e.target as HTMLElement)?.dataset?.["angle"];
+    if (angle) onRChange(angle, e);
+    showUnitary(e);
+  }
+
+  function onGateInput(e: Event) {
+    setGateList((e.target as HTMLTextAreaElement).value)
+    showUnitary(e);
+  }
+
   return (
     <div style="position: relative;">
       <canvas ref={canvasRef} id="sphereCanvas"></canvas>
-      <div class='left-controls'>
+      <div class='left-controls' onMouseOver={showUnitary} onMouseOut={hideUnitary} onFocusIn={showUnitary} onFocusOut={hideUnitary}>
         <div class="controls-heading">Unitary gates</div>
         <div class="gate-buttons">
-          <button type="button" onClick={() => rotate("X")}>X</button>
-          <button type="button" onClick={() => rotate("Y")}>Y</button>
-          <button type="button" onClick={() => rotate("Z")}>Z</button>
-          <button type="button" onClick={() => rotate("H")}>H</button>
+          <button type="button" data-unitary="X" onClick={() => rotate("X")}>X</button>
+          <button type="button" data-unitary="Y" onClick={() => rotate("Y")}>Y</button>
+          <button type="button" data-unitary="Z" onClick={() => rotate("Z")}>Z</button>
+          <button type="button" data-unitary="H" onClick={() => rotate("H")}>H</button>
         </div>
         <div class="gate-buttons">
-          <button type="button" onClick={() => rotate("S")}>S</button>
-          <button type="button" onClick={() => rotate("s")}>S†</button>
-          <button type="button" onClick={() => rotate("T")}>T</button>
-          <button type="button" onClick={() => rotate("t")}>T†</button>
+          <button type="button"  data-unitary="S" onClick={() => rotate("S")}>S</button>
+          <button type="button"  data-unitary="SA" onClick={() => rotate("s")}>S†</button>
+          <button type="button" data-unitary="T" onClick={() => rotate("T")}>T</button>
+          <button type="button" data-unitary="TA" onClick={() => rotate("t")}>T†</button>
         </div>
         <div class="gate-buttons">
-          <button type="button" onClick={(e) => onRotationGate("Rx", e.target)}>Rx</button>
-          <input type="number" min={0} max={Math.PI * 2} size={4} value={rAngles.rx} onInput={(e) => onRChange("rx", e)} />
+          <button type="button" data-unitary="Rx" onClick={(e) => onRotationGate("Rx", e.target)}>Rx</button>
+          <input type="number" data-angle="rx" min={0} max={Math.PI * 2} size={4} value={rAngles.rx} onInput={onRotationInput} />
         </div>
         <div class="gate-buttons">
-          <button type="button" onClick={(e) => onRotationGate("Ry", e.target)}>Ry</button>
-          <input type="number" min={0} max={Math.PI * 2} size={4} value={rAngles.ry} onInput={(e) => onRChange("ry", e)} />
+          <button type="button" data-unitary="Ry" onClick={(e) => onRotationGate("Ry", e.target)}>Ry</button>
+          <input type="number" data-angle="ry" min={0} max={Math.PI * 2} size={4} value={rAngles.ry} onInput={onRotationInput} />
         </div>
         <div class="gate-buttons">
-          <button type="button" onClick={(e) => onRotationGate("Rz", e.target)}>Rz</button>
-          <input type="number" min={0} max={Math.PI * 2} size={4} value={rAngles.rz} onInput={(e) => onRChange("rz", e)} />
+          <button type="button" data-unitary="Rz" onClick={(e) => onRotationGate("Rz", e.target)}>Rz</button>
+          <input type="number" data-angle="rz" min={0} max={Math.PI * 2} size={4} value={rAngles.rz} onInput={onRotationInput} />
         </div>
           <label>
             Synthesize Rz gate
             <input type="checkbox" checked={rzSynth} onChange={changeRzSynth} />
           </label>
         <div class="controls-heading">Gate sequence</div>
-        <textarea id="gate_sequence" rows={3} cols={16} placeholder={"Enter some gates"} value={gateList} onInput={(e) => setGateList((e.target as HTMLTextAreaElement).value)} />
+        <textarea id="gate_sequence" rows={3} cols={16} placeholder={"Enter some gates"} value={gateList} onInput={onGateInput} />
         <button type="button" onClick={applyGates}>Run</button>
         <button type="button" onClick={reset}>Reset</button>
+      </div>
+      <div class="unitary-matrix-help">
+        <div class="unitary-matrix-header">Unitary matrix</div>
+        <div class="unitary-matrix"></div>
       </div>
       <div class={mathListClass}>
         {gateArray.map((str) => (

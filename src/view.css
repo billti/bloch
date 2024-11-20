@@ -117,3 +117,19 @@ body {
     border-bottom: 1px dotted gray;
     text-align: left
 }
+
+.unitary-matrix-help {
+  position: absolute;
+  top: 50px;
+  left: 225px;
+  display: none;
+  border: 1px solid gray;
+  padding: 8px;
+  background-color: var(--vscode-menu-background);
+  opacity: 0.8;
+}
+
+.unitary-matrix-header {
+  margin-bottom: 8px;
+  font-weight: 600;
+}
