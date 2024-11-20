@@ -824,7 +824,7 @@ export function BlochSphere() {
           <span>Gate sequence</span>
           <a href="#help" onClick={() => (document.querySelector('.help-box') as HTMLDivElement).style.display = 'block'} style="font-size: 0.75em; outline: none;">(help)</a>
         </div>
-        <textarea id="gate_sequence" rows={3} cols={16} placeholder={"Enter some gates"} value={gateList} onInput={onGateInput} />
+        <textarea id="gate_sequence" rows={3} cols={16} value={gateList} onInput={onGateInput} />
         <button type="button" onClick={applyGates}>Run</button>
         <button type="button" onClick={reset}>Reset</button>
       </div>
@@ -845,6 +845,7 @@ export function BlochSphere() {
       <div class='help-box' onClick={e => (e.currentTarget as HTMLDivElement).style.display = 'none'}>
         <p>Enter gates into the text area then click 'Run' to apply them. They are applied sequentially in the order given.</p>
         <p>Valid gates are X, Y, Z, H, S, T. Use lowercase for adjoint 's' or 't'. For example, 'THt' would apply a T gate, a Hadamard gate, then a T-adjoint gate.</p>
+        <p>If the 'Synthesize Rz gate' box is checked, when the 'Rz' button is pressed a sequence of Clifford+T gates approximately equivalent to the Rz rotation specified will be generated and placed in the gate sequence area.</p>
         <p>Gates may be separated by whitespace or commas, or have no separation.</p>
         <p>Click on this help box to close it.</p>
       </div>
