@@ -51,7 +51,7 @@ body {
     margin-left: 3px;
 }
 
-.left-controls * {
+.spaced, .spaced * {
     margin: 3px;
 }
 

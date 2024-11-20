@@ -3,16 +3,13 @@
 
 /* TODO:
 
-- Add a help pop-up for the gate sequence textarea
 - Wire up the settings to the renderer (rotation speed, trail length, colors, etc.)
 - Save/restore settings
-- Use CSS to honor the light/dark theme for the settings
 - Fix warning about unicode chars in KaTeX
 - Only show the equation once the rotation for it starts
-- Show the equations from state vector to bloch angles
 - Add a slider to drag back and forth to replay the gates
 - Scroll to and highlight the current equation as history moves forward and back
-- Draw the equator option (z plane line)
+- Draw the equator option (z plane line) with markings for zoom level
 
 To convert basis state coeffeicients a & b into a point on the Bloch sphere:
  - Calculate the angle theta = 2 * acos(magnitute(a))
@@ -61,6 +58,7 @@ import {
   numToStr,
   rotationMatrix,
   Ident,
+  cplx,
 } from "../src/cplx.js";
 
 import rzOps from "./rz-array.json";
@@ -771,6 +769,21 @@ export function BlochSphere() {
     hideUnitary(e);
   }
 
+  function latexForBlochAngles(): string {
+    // The next 2 numbers aren't complex, but the Cplx class gives us a nie LaTeX rendering for real number too.
+    const theta = cplx(2 * Math.acos(state.x.toPolar().magnitude));
+    let phi = cplx(state.y.toPolar().phase - state.x.toPolar().phase);
+    if (phi.re < 0) phi.re += 2 * Math.PI;
+
+    const ketHtml = katex.renderToString(String.raw`\ket{\psi} = \alpha \ket{0} + \beta \ket{1} = \begin{bmatrix} ${state.x.toLaTeX()} \\ ${state.y.toLaTeX()} \end{bmatrix}`);
+    const thetaHtml = katex.renderToString(String.raw`\theta = 2(\text{acos}(|\alpha|) = ${theta.toLaTeX()}`);
+    const phiHtml = katex.renderToString(String.raw`\phi = \arg(\beta) - \arg(\alpha) = ${phi.toLaTeX()}`);
+
+    const innerHTML = `<p>${ketHtml}</p><p>${thetaHtml}</p><p>${phiHtml}</p>`;
+
+    return innerHTML;
+  }
+
   function hideUnitary(e: Event) {
     const unitaryDiv = document.querySelector(".unitary-matrix-help") as HTMLDivElement;
     unitaryDiv.style.display = "none";
@@ -791,43 +804,48 @@ export function BlochSphere() {
     <div style="position: relative;">
       <canvas ref={canvasRef} id="sphereCanvas"></canvas>
       <div class='left-controls' onMouseOver={showUnitary} onMouseOut={hideUnitary} onFocusIn={showUnitary} onFocusOut={hideUnitary}>
-        <div class="controls-heading">Unitary gates</div>
-        <div class="gate-buttons">
+        <div class="controls-heading spaced">Unitary gates</div>
+        <div class="gate-buttons spaced">
           <button type="button" data-unitary="X" onClick={() => rotate("X")}>X</button>
           <button type="button" data-unitary="Y" onClick={() => rotate("Y")}>Y</button>
           <button type="button" data-unitary="Z" onClick={() => rotate("Z")}>Z</button>
           <button type="button" data-unitary="H" onClick={() => rotate("H")}>H</button>
         </div>
-        <div class="gate-buttons">
+        <div class="gate-buttons spaced">
           <button type="button"  data-unitary="S" onClick={() => rotate("S")}>S</button>
           <button type="button"  data-unitary="SA" onClick={() => rotate("s")}>S†</button>
           <button type="button" data-unitary="T" onClick={() => rotate("T")}>T</button>
           <button type="button" data-unitary="TA" onClick={() => rotate("t")}>T†</button>
         </div>
-        <div class="gate-buttons">
+        <div class="gate-buttons spaced">
           <button type="button" data-unitary="Rx" onClick={(e) => onRotationGate("Rx", e.target)}>Rx</button>
           <input type="number" data-angle="rx" min={0} max={Math.PI * 2} step={0.1} size={4} value={rAngles.rx} onInput={onRotationInput} />
         </div>
-        <div class="gate-buttons">
+        <div class="gate-buttons spaced">
           <button type="button" data-unitary="Ry" onClick={(e) => onRotationGate("Ry", e.target)}>Ry</button>
           <input type="number" data-angle="ry" min={0} max={Math.PI * 2} step={0.1} size={4} value={rAngles.ry} onInput={onRotationInput} />
         </div>
-        <div class="gate-buttons">
+        <div class="gate-buttons spaced">
           <button type="button" data-unitary="Rz" onClick={(e) => onRotationGate("Rz", e.target)}>Rz</button>
           <input type="number" data-angle="rz" min={0} max={Math.PI * 2} step={0.1} size={4} value={rAngles.rz} onInput={onRotationInput} />
         </div>
-          <label>
-            Synthesize Rz gate
-            <input type="checkbox" checked={rzSynth} onChange={changeRzSynth} />
-          </label>
-        <div class="controls-heading">
+        <label class="spaced">
+          Synthesize Rz gate
+          <input type="checkbox" checked={rzSynth} onChange={changeRzSynth} />
+        </label>
+        <div class="controls-heading spaced">
           <span>Gate sequence</span>
           <a href="#help" onClick={() => (document.querySelector('.help-box') as HTMLDivElement).style.display = 'block'} style="font-size: 0.75em; outline: none;">(help)</a>
         </div>
-        <textarea id="gate_sequence" rows={3} cols={16} value={gateList} onInput={onGateInput} />
-        <button type="button" onClick={applyGates}>Run</button>
-        <button type="button" onClick={reset}>Reset</button>
+        <textarea class="spaced" id="gate_sequence" rows={3} cols={16} value={gateList} onInput={onGateInput} />
+        <button class="spaced" type="button" onClick={applyGates}>Run</button>
+        <button class="spaced" type="button" onClick={reset}>Reset</button>
+        <div class="bloch-angels">
+          <div class="controls-heading">Bloch angles</div>
+          <div dangerouslySetInnerHTML={{ __html: latexForBlochAngles() }}></div>
+        </div>
       </div>
+
       <div class="unitary-matrix-help">
         <div class="unitary-matrix-header">Unitary matrix</div>
         <div class="unitary-matrix"></div>
